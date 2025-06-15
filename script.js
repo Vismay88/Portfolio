@@ -1,38 +1,27 @@
 // Mobile Navigation
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
+const navItems = document.querySelectorAll('.nav-links a');
 const links = document.querySelectorAll('.nav-links li');
 const navbar = document.querySelector('.navbar');
 
 // Toggle Navigation
 hamburger.addEventListener('click', () => {
-    // Toggle Navigation
     navLinks.classList.toggle('nav-active');
-    hamburger.classList.toggle('toggle');
-    document.body.classList.toggle('nav-open');
-    
-    // Animate Links
-    links.forEach((link, index) => {
-        if (link.style.animation) {
-            link.style.animation = '';
-        } else {
-            link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
-        }
-    });
+    hamburger.classList.toggle('active');
 });
 
 // Close mobile menu when clicking outside
 document.addEventListener('click', (e) => {
-    if (navLinks.classList.contains('nav-active') && 
-        !e.target.closest('.nav-links') && 
-        !e.target.closest('.hamburger')) {
-        hamburger.click();
+    if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+        navLinks.classList.remove('nav-active');
+        hamburger.classList.remove('active');
     }
 });
 
 // Smooth Scrolling for Navigation Links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
+navItems.forEach(link => {
+    link.addEventListener('click', function (e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
@@ -42,7 +31,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             });
             // Close mobile menu if open
             if (navLinks.classList.contains('nav-active')) {
-                hamburger.click();
+                navLinks.classList.remove('nav-active');
+                hamburger.classList.remove('active');
             }
         }
     });
@@ -161,4 +151,77 @@ style.textContent = `
     }
 `;
 
-document.head.appendChild(style); 
+document.head.appendChild(style);
+
+// Update active link based on scroll position
+function updateActiveLink() {
+    const sections = document.querySelectorAll('section');
+    const scrollPosition = window.scrollY + 100;
+
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const sectionId = section.getAttribute('id');
+        
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${sectionId}`) {
+                    item.classList.add('active');
+                }
+            });
+        }
+    });
+}
+
+// Update active link on scroll
+window.addEventListener('scroll', updateActiveLink);
+
+// Update active link on page load
+document.addEventListener('DOMContentLoaded', updateActiveLink);
+
+// Project Slider
+const track = document.querySelector('.projects-track');
+const cards = document.querySelectorAll('.project-card');
+const prevBtn = document.querySelector('.slider-btn.prev');
+const nextBtn = document.querySelector('.slider-btn.next');
+
+let currentIndex = 0;
+const cardWidth = cards[0].offsetWidth + 32; // card width + gap
+
+function updateSlider() {
+    const offset = -currentIndex * cardWidth;
+    track.style.transform = `translateX(${offset}px)`;
+    
+    // Update button states
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.disabled = currentIndex >= cards.length - getVisibleCards();
+}
+
+function getVisibleCards() {
+    if (window.innerWidth >= 1024) return 3;
+    if (window.innerWidth >= 768) return 2;
+    return 1;
+}
+
+prevBtn.addEventListener('click', () => {
+    if (currentIndex > 0) {
+        currentIndex--;
+        updateSlider();
+    }
+});
+
+nextBtn.addEventListener('click', () => {
+    if (currentIndex < cards.length - getVisibleCards()) {
+        currentIndex++;
+        updateSlider();
+    }
+});
+
+// Update slider on window resize
+window.addEventListener('resize', () => {
+    updateSlider();
+});
+
+// Initialize slider
+updateSlider(); 
